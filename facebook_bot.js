@@ -12,7 +12,8 @@ if (!verifyToken) throw new Error('FACEBOOK_VERIFY_TOKEN is required');
 if (!port) throw new Error('PORT is required');
 
 var controller = Botkit.facebookbot({
-  debug: false,
+  debug: true,
+  logLevel: 1,
   access_token: accessToken,
   verify_token: verifyToken
 });
@@ -27,69 +28,66 @@ controller.setupWebserver(port, function (err, server) {
 });
 
 controller.hears(['who are you'], 'message_received', function (bot, message) {
-  bot.reply('I am Serena.');
+  bot.reply(message, 'I am Serena.');
 });
 
-controller.hears(['hello'], 'message_received', function (bot, message) {
-
+controller.hears(['hello', 'hi', 'hey'], 'message_received', function (bot, message) {
   bot.startConversation(message, function (err, convo) {
-    convo.say('Hello!');
-    convo.ask('Are you a Golden States Warriors Fan?', [
+    convo.say('Howdy!');
+    convo.ask('Did you watch the NBA games yesterday?', [
       {
         pattern: 'yes',
         callback: function (response, convo) {
-          convo.say('Awesome!');
+          convo.say('Lucky you!');
           convo.next();
         }
       },
       {
         pattern: 'no',
         callback: function (response, convo) {
-          convo.say('Boooo you!');
-          convo.stop();
+          fetchGames({
+            success: function (res) {
+              var games = res.body.games;
+              convo.say('Bummer. Here are the scores for yesterday\'s games :)');
+              _.each(games, function (game, index) {
+                convo.say(game.scoreline);
+              });
+              convo.next();
+            }
+          });
         }
       }
     ]);
 
-    convo.next();
-
-    convo.on('end', function(convo) {
-      bot.reply('Goodbye!');
+    convo.on('end', function (convo) {
+      if (convo.status == 'completed') {
+        convo.say('Goodbye.');
+      }
     });
   });
 });
 
-controller.hears(['scores'], 'message_received', function (bot, message) {
-  bot.reply(message, 'Let me get you the scores from yesterday. Hold on...');
+var fetchGames = function (callbacks) {
   Stattleship.fetch('game_logs', { on: 'yesterday' })
-    .then(function (err, res) {
-      if (err || !res.ok) {
-        bot.reply(message, err);
-      } else {
-        var games = res.body.games;
-        bot.reply(message, games.length + ' happened yesterday.');
-        if (games.length > 1) {
-          _.each(games, function (game) {
-            bot.reply(message, game.scoreline);
-          });
-        }
-      }
+    .then(function (res) {
+      callbacks.success(res);
     });
-});
+}
+
+controller.hears(['thanks'], 'message_received', function (bot, message) {
+  bot.reply(message, 'You are welcome!');
+})
 
 controller.on('facebook_postback', function (bot, message) {
-  switch (message.payload) {
-    case 'yes':
-      bot.reply(message, 'Let\'s get you started!');
-      break;
-    case 'no':
-      bot.reply(message, 'Okay, maybe tomorrow then.');
-      break;
-  }
+});
+
+controller.hears(['help'], 'message_received', function (bot, message) {
+  bot.reply(message,
+    'Here is what I understand: "What were the scores yesterday?"');
 });
 
 controller.on('message_received', function (bot, message) {
-  bot.reply(message, 'Huh?! Sorry, I don\'t understand what you are saying');
-})
+  bot.reply(message, 'Sorry, I don\'t understand what you are saying.');
+});
 
 exports.controller = controller;

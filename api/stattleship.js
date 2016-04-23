@@ -11,5 +11,5 @@ exports.fetch = function (method, options) {
   return request.get(endpoint + method)
     .set(header)
     .query(options)
-    .promise()
+    .promise();
 };
