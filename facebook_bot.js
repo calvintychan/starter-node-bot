@@ -27,11 +27,7 @@ controller.setupWebserver(port, function (err, server) {
 });
 
 controller.hears(['who are you'], 'message_received', function (bot, message) {
-  bot.startConversation(message, function (err, convo) {
-    convo.ask('I am Serena. Who are you?', function (response, convo) {
-      convo.say('Nice to meet you!');
-    });
-  });
+  bot.reply('I am Serena.');
 });
 
 controller.hears(['hello'], 'message_received', function (bot, message) {
@@ -43,15 +39,23 @@ controller.hears(['hello'], 'message_received', function (bot, message) {
         pattern: 'yes',
         callback: function (response, convo) {
           convo.say('Awesome!');
+          convo.next();
         }
       },
       {
         pattern: 'no',
         callback: function (response, convo) {
           convo.say('Boooo you!');
+          convo.stop();
         }
       }
     ]);
+
+    convo.next();
+
+    convo.on('end', function(convo) {
+      bot.reply('Goodbye!');
+    });
   });
 });
 
