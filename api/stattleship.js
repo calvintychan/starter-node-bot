@@ -7,7 +7,7 @@ const header = {
   'Accept': 'application/vnd.stattleship.com; version=1'
 };
 
-exports stattleship = function (method, options) {
+exports.fetch = function (method, options) {
   return request.get(endpoint + method)
     .set(header)
     .query(options)
