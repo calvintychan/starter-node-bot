@@ -1,6 +1,7 @@
 var Botkit = require('botkit')
 
 // Expect a SLACK_TOKEN environment variable
+/*
 var slackToken = process.env.SLACK_TOKEN
 if (!slackToken) {
   console.error('SLACK_TOKEN is required!')
@@ -66,6 +67,7 @@ controller.hears(['attachment'], ['direct_message', 'direct_mention'], function 
 controller.hears('.*', ['direct_message', 'direct_mention'], function (bot, message) {
   bot.reply(message, 'Sorry <@' + message.user + '>, I don\'t understand. \n')
 })
+*/
 
 // Facebook Messenger
 var accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
