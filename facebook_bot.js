@@ -1,4 +1,6 @@
-var Botkit = require('botkit')
+var Botkit = require('botkit');
+var Stattleship = require('./api/stattleship');
+var _ = require('lodash');
 
 // Facebook Messenger
 var accessToken = process.env.FACEBOOK_PAGE_ACCESS_TOKEN;
@@ -10,7 +12,7 @@ if (!verifyToken) throw new Error('FACEBOOK_VERIFY_TOKEN is required');
 if (!port) throw new Error('PORT is required');
 
 var controller = Botkit.facebookbot({
-  debug: true,
+  debug: false,
   access_token: accessToken,
   verify_token: verifyToken
 });
@@ -24,30 +26,51 @@ controller.setupWebserver(port, function (err, server) {
   });
 });
 
-controller.hears(['hello', 'hi', 'hey', 'howdy', 'yo'], 'message_received', function (bot, message) {
-  bot.reply(message, 'Hello!');
-  bot.reply(message, 'Good day!');
-  bot.reply(message, {
-    attachment: {
-      type: 'template',
-      payload: {
-        template_type: 'button',
-        text: 'Ready to be productive?',
-        buttons: [
-          {
-            type: 'postback',
-            title: 'Yes',
-            payload: 'yes'
-          },
-          {
-            type: 'postback',
-            title: 'No',
-            payload: 'no'
-          }
-        ]
-      }
-    }
+controller.hears(['who are you'], 'message_received', function (bot, message) {
+  bot.startConversation(message, function (err, convo) {
+    convo.ask('I am Serena. Who are you?', function (response, convo) {
+      convo.say('Nice to meet you!');
+    });
   });
+});
+
+controller.hears(['hello'], 'message_received', function (bot, message) {
+
+  bot.startConversation(message, function (err, convo) {
+    convo.say('Hello!');
+    convo.ask('Are you a Golden States Warriors Fan?', [
+      {
+        pattern: 'yes',
+        callback: function (response, convo) {
+          convo.say('Awesome!');
+        }
+      },
+      {
+        pattern: 'no',
+        callback: function (response, convo) {
+          convo.say('Boooo you!');
+        }
+      }
+    ]);
+  });
+});
+
+controller.hears(['scores'], 'message_received', function (bot, message) {
+  bot.reply(message, 'Let me get you the scores from yesterday. Hold on...');
+  Stattleship.fetch('game_logs', { on: 'yesterday' })
+    .then(function (err, res) {
+      if (err || !res.ok) {
+        bot.reply(message, err);
+      } else {
+        var games = res.body.games;
+        bot.reply(message, games.length + ' happened yesterday.');
+        if (games.length > 1) {
+          _.each(games, function (game) {
+            bot.reply(message, game.scoreline);
+          });
+        }
+      }
+    });
 });
 
 controller.on('facebook_postback', function (bot, message) {
