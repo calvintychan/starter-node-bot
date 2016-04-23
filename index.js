@@ -79,6 +79,7 @@ if (!verifyToken) throw new Error('FACEBOOK_VERIFY_TOKEN is required');
 if (!port) throw new Error('PORT is required');
 
 var controller = Botkit.facebookbot({
+  debug: true,
   access_token: accessToken,
   verify_token: verifyToken
 });
@@ -128,3 +129,7 @@ controller.on('facebook_postback', function (bot, message) {
       break;
   }
 });
+
+controller.hears('.*', 'message_received', function (bot, message) {
+  bot.reply(message, 'Huh?! Sorry, my creator needs to make me smarter!');
+})
