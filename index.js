@@ -76,7 +76,7 @@ var port = process.env.PORT;
 
 if (!accessToken) throw new Error('FACEBOOK_PAGE_ACCESS_TOKEN is required');
 if (!verifyToken) throw new Error('FACEBOOK_VERIFY_TOKEN is required');
-if (!port) throw new ERROR('PORT is required');
+if (!port) throw new Error('PORT is required');
 
 var controller = Botkit.facebookbot({
   access_token: accessToken,
