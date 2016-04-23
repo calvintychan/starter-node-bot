@@ -130,6 +130,6 @@ controller.on('facebook_postback', function (bot, message) {
   }
 });
 
-controller.hears('.*', 'message_received', function (bot, message) {
+controller.on('message_received', function (bot, message) {
   bot.reply(message, 'Huh?! Sorry, my creator needs to make me smarter!');
 })
